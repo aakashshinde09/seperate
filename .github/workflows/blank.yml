@@ -1,33 +1,37 @@
-name: Deploy Landing Pages
+name: Deploy to S3 Based on Branch Name
 
 on:
   push:
-    paths:
-      - 'akashmultipartexample0202/**'
-      - 'asdfgh-bucket-010928179293/**'
-      - 'buildstask/**'
-      
+    branches:
+      - '*' # Trigger on all branches
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the repository
+    # Step 1: Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Set up AWS CLI
+    # Step 2: Set up AWS CLI
     - name: Set up AWS CLI
       uses: aws-actions/configure-aws-credentials@v3
       with:
-        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    # Sync the changed folder to S3
+    # Step 3: Sync branch content to corresponding S3 bucket
     - name: Deploy to S3
       run: |
-        FOLDER_NAME=$(echo "${GITHUB_REF_NAME}" | awk -F'/' '{print $NF}')
-        BUCKET_NAME="${FOLDER_NAME}"
-        aws s3 sync ./$FOLDER_NAME s3://$BUCKET_NAME --delete
+        # Get the branch name
+        BRANCH_NAME=$(echo "${GITHUB_REF_NAME}" | sed 's|refs/heads/||')
+
+        # S3 bucket name is the same as the branch name
+        BUCKET_NAME=$BRANCH_NAME
+
+        echo "Deploying branch '$BRANCH_NAME' to S3 bucket 's3://$BUCKET_NAME'"
+
+        # Sync all files in the branch to the corresponding S3 bucket
+        aws s3 sync . s3://$BUCKET_NAME --delete
