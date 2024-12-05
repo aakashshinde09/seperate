@@ -9,15 +9,15 @@ phases:
       - echo Checking for changes
       - changed_folders=$(git diff --name-only HEAD^ HEAD | grep -o '^[^/]*' | sort -u)
       - echo "Changed folders: $changed_folders"
-      - |
+      - >
         if [ -z "$changed_folders" ]; then
-          echo "No changes detected. Skipping deployment."
+          echo "No changes detected. Skipping deployment.";
         else
           # Loop through changed folders and sync only the modified ones
           for folder in $changed_folders; do
             if [ -d "$folder" ]; then
-              echo "Syncing $folder to its S3 bucket"
-              aws s3 sync ./$folder s3://$folder --delete
+              echo "Syncing $folder to its S3 bucket";
+              aws s3 sync ./$folder s3://$folder-bucket --delete;
             fi
-          done
+          done;
         fi
