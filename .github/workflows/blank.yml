@@ -1,0 +1,33 @@
+name: Deploy Landing Pages
+
+on:
+  push:
+    paths:
+      - 'akashmultipartexample0202/**'
+      - 'asdfgh-bucket-010928179293/**'
+      - 'buildstask/**'
+      
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Set up AWS CLI
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # Sync the changed folder to S3
+    - name: Deploy to S3
+      run: |
+        FOLDER_NAME=$(echo "${GITHUB_REF_NAME}" | awk -F'/' '{print $NF}')
+        BUCKET_NAME="${FOLDER_NAME}"
+        aws s3 sync ./$FOLDER_NAME s3://$BUCKET_NAME --delete
